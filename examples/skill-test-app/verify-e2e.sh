@@ -32,7 +32,7 @@ xcodebuild \
 echo "==> Installing and launching"
 xcrun simctl install "$UDID" "$APP_PATH"
 xcrun simctl launch "$UDID" "$BUNDLE_ID" >/dev/null
-sleep 1
+sleep 2
 
 cleanup() {
   npx --yes serve-sim@latest --kill "$UDID" >/dev/null 2>&1 || true
@@ -55,9 +55,6 @@ wait_for_ax() {
   echo "FAIL: serve-sim /ax not ready at $AX_URL" >&2
   exit 1
 }
-
-echo "==> Waiting for serve-sim /ax"
-wait_for_ax
 
 read_ax_label() {
   local id="$1"
@@ -85,6 +82,45 @@ print(result if result is not None else '')
 " "$id"
 }
 
+tap_by_ax_id() {
+  local id="$1"
+  local coords
+  coords="$(curl -fsS "$AX_URL" | python3 -c "
+import json, sys
+target = sys.argv[1]
+data = json.load(sys.stdin)
+app = data[0]
+sw, sh = app['frame']['width'], app['frame']['height']
+
+def find(node):
+    if isinstance(node, list):
+        for item in node:
+            r = find(item)
+            if r:
+                return r
+    elif isinstance(node, dict):
+        if node.get('AXUniqueId') == target:
+            f = node['frame']
+            return (f['x'] + f['width'] / 2) / sw, (f['y'] + f['height'] / 2) / sh
+        for child in node.get('children', []):
+            r = find(child)
+            if r:
+                return r
+    return None
+
+pt = find(data)
+if not pt:
+    raise SystemExit(f'element not found: {target}')
+print(f'{pt[0]:.4f} {pt[1]:.4f}')
+" "$id")"
+  echo "    tap $id at $coords"
+  read -r TX TY <<<"$coords"
+  npx --yes serve-sim@latest tap "$TX" "$TY" -d "$UDID" >/dev/null
+}
+
+echo "==> Waiting for serve-sim /ax"
+wait_for_ax
+
 BEFORE="$(read_ax_label tap-count)"
 echo "    tap-count before: ${BEFORE:-<missing>}"
 
@@ -93,11 +129,15 @@ if [[ "$BEFORE" != "Taps: 0" ]]; then
   exit 1
 fi
 
-echo "==> Tapping via serve-sim"
-npx --yes serve-sim@latest tap 0.5 0.646 -d "$UDID" >/dev/null
-sleep 0.5
+echo "==> Tapping via serve-sim (coords from /ax)"
+tap_by_ax_id tap-button
 
-AFTER="$(read_ax_label tap-count)"
+AFTER=""
+for _ in $(seq 1 15); do
+  sleep 1
+  AFTER="$(read_ax_label tap-count)"
+  [[ "$AFTER" == "Taps: 1" ]] && break
+done
 echo "    tap-count after:  ${AFTER:-<missing>}"
 
 if [[ "$AFTER" != "Taps: 1" ]]; then
