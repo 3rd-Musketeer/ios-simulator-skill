@@ -1,0 +1,29 @@
+name: Bug report
+description: Report something broken in the skill or example harness
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: What did you expect vs what actually happened?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. cd examples/skill-test-app
+        2. ./verify-e2e.sh
+        3. ...
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: macOS 15, Xcode 16, serve-sim 0.x, agent-browser 0.x
+    validations:
+      required: true

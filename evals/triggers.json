@@ -1,0 +1,22 @@
+[
+  {
+    "prompt": "Screenshot the iOS simulator and verify the Tap Me button is visible",
+    "should_trigger": true
+  },
+  {
+    "prompt": "Run my SwiftUI app on the iOS simulator and test it without Xcode",
+    "should_trigger": true
+  },
+  {
+    "prompt": "Start serve-sim and open the simulator preview in the browser",
+    "should_trigger": true
+  },
+  {
+    "prompt": "Tap the tap-button in the simulator using the accessibility tree",
+    "should_trigger": true
+  },
+  {
+    "prompt": "Deploy my React app to Vercel",
+    "should_trigger": false
+  }
+]

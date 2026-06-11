@@ -1,0 +1,19 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  smoke:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check prerequisites (headless)
+        run: IOS_SIMULATOR_SKIP_BROWSER=1 ./scripts/check-prereqs.sh
+
+      - name: Run e2e smoke test
+        run: cd examples/skill-test-app && ./verify-e2e.sh

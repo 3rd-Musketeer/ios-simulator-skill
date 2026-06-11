@@ -1,0 +1,16 @@
+# Xcode / Swift
+.derivedData/
+DerivedData/
+.build/
+.swiftpm/
+*.xcuserstate
+xcuserdata/
+
+# macOS
+.DS_Store
+
+# Node
+node_modules/
+
+# Local temp
+/tmp/
