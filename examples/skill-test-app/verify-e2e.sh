@@ -41,9 +41,23 @@ trap cleanup EXIT INT TERM HUP
 cleanup
 
 echo "==> Starting serve-sim (detach)"
-STREAM_JSON="$(npx --yes serve-sim@latest --detach -q "$UDID")"
+STREAM_JSON="$(npx --yes serve-sim@latest --detach -q "$UDID" 2>/dev/null | tail -1)"
 STREAM_PORT="$(echo "$STREAM_JSON" | python3 -c "import json,sys; print(json.load(sys.stdin)['port'])")"
 AX_URL="http://127.0.0.1:${STREAM_PORT}/ax"
+
+wait_for_ax() {
+  for _ in $(seq 1 60); do
+    if curl -fsS "$AX_URL" >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep 1
+  done
+  echo "FAIL: serve-sim /ax not ready at $AX_URL" >&2
+  exit 1
+}
+
+echo "==> Waiting for serve-sim /ax"
+wait_for_ax
 
 read_ax_label() {
   local id="$1"
