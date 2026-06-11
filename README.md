@@ -14,7 +14,7 @@ Built on [serve-sim](https://github.com/EvanBacon/serve-sim) (stream + control) 
 Point your agent host at this repository root (the folder containing `SKILL.md`):
 
 ```bash
-git clone https://github.com/haoyang/ios-simulator-skill.git
+git clone https://github.com/3rd-Musketeer/ios-simulator-skill.git
 ln -sf "$(pwd)/ios-simulator-skill" ~/.cursor/skills/ios-simulator
 # Claude Code: ~/.claude/skills/ios-simulator
 ```

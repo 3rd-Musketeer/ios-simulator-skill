@@ -10,7 +10,7 @@
 
 Please **do not** open a public GitHub issue for security-sensitive reports.
 
-Instead, use [GitHub Security Advisories](https://github.com/haoyang/ios-simulator-skill/security/advisories/new) on this repository, or email the maintainer privately.
+Instead, use [GitHub Security Advisories](https://github.com/3rd-Musketeer/ios-simulator-skill/security/advisories/new) on this repository, or email the maintainer privately.
 
 Include:
 
