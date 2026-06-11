@@ -2,9 +2,19 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "$ROOT/../.." && pwd)"
 PROJECT="$ROOT/SkillTestApp.xcodeproj"
 SCHEME="SkillTestApp"
 BUNDLE_ID="com.mori.skilltest.app"
+
+serve_sim() {
+  local bin="$REPO_ROOT/node_modules/.bin/serve-sim"
+  if [[ -x "$bin" ]]; then
+    "$bin" "$@"
+  else
+    npx --yes serve-sim@latest "$@"
+  fi
+}
 
 echo "==> Listing simulators"
 xcrun simctl list devices available
@@ -59,10 +69,10 @@ xcrun simctl install "$UDID" "$APP_PATH"
 xcrun simctl launch "$UDID" "$BUNDLE_ID"
 
 cleanup_serve_sim() {
-  npx --yes serve-sim@latest --kill "$UDID" >/dev/null 2>&1 || true
+  serve_sim --kill "$UDID" >/dev/null 2>&1 || true
 }
 trap cleanup_serve_sim EXIT INT TERM HUP
 cleanup_serve_sim
 
 echo "==> Starting serve-sim (watch this output for the preview URL)"
-npx --yes serve-sim@latest "$UDID"
+serve_sim "$UDID"

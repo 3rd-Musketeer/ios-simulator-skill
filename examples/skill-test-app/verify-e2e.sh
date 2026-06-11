@@ -3,11 +3,21 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "$ROOT/../.." && pwd)"
 PROJECT="$ROOT/SkillTestApp.xcodeproj"
 SCHEME="SkillTestApp"
 BUNDLE_ID="com.mori.skilltest.app"
 DERIVED="$ROOT/.derivedData"
 APP_PATH="$DERIVED/Build/Products/Debug-iphonesimulator/SkillTestApp.app"
+
+serve_sim() {
+  local bin="$REPO_ROOT/node_modules/.bin/serve-sim"
+  if [[ -x "$bin" ]]; then
+    "$bin" "$@"
+  else
+    npx --yes serve-sim@latest "$@"
+  fi
+}
 
 UDID="${SIM_UDID:-}"
 if [[ -z "$UDID" ]]; then
@@ -32,21 +42,21 @@ xcodebuild \
 echo "==> Installing and launching"
 xcrun simctl install "$UDID" "$APP_PATH"
 xcrun simctl launch "$UDID" "$BUNDLE_ID" >/dev/null
-sleep 2
+sleep 1
 
 cleanup() {
-  npx --yes serve-sim@latest --kill "$UDID" >/dev/null 2>&1 || true
+  serve_sim --kill "$UDID" >/dev/null 2>&1 || true
 }
 trap cleanup EXIT INT TERM HUP
 cleanup
 
 echo "==> Starting serve-sim (detach)"
-STREAM_JSON="$(npx --yes serve-sim@latest --detach -q "$UDID" 2>/dev/null | tail -1)"
+STREAM_JSON="$(serve_sim --detach -q "$UDID" 2>/dev/null | tail -1)"
 STREAM_PORT="$(echo "$STREAM_JSON" | python3 -c "import json,sys; print(json.load(sys.stdin)['port'])")"
 AX_URL="http://127.0.0.1:${STREAM_PORT}/ax"
 
 wait_for_ax() {
-  for _ in $(seq 1 60); do
+  for _ in $(seq 1 30); do
     if curl -fsS "$AX_URL" >/dev/null 2>&1; then
       return 0
     fi
@@ -115,7 +125,7 @@ print(f'{pt[0]:.4f} {pt[1]:.4f}')
 " "$id")"
   echo "    tap $id at $coords"
   read -r TX TY <<<"$coords"
-  npx --yes serve-sim@latest tap "$TX" "$TY" -d "$UDID" >/dev/null
+  serve_sim tap "$TX" "$TY" -d "$UDID" >/dev/null
 }
 
 echo "==> Waiting for serve-sim /ax"
@@ -133,7 +143,7 @@ echo "==> Tapping via serve-sim (coords from /ax)"
 tap_by_ax_id tap-button
 
 AFTER=""
-for _ in $(seq 1 15); do
+for _ in $(seq 1 10); do
   sleep 1
   AFTER="$(read_ax_label tap-count)"
   [[ "$AFTER" == "Taps: 1" ]] && break

@@ -1,0 +1,7 @@
+{
+  "name": "ios-simulator-skill",
+  "private": true,
+  "devDependencies": {
+    "serve-sim": "^0.1.40"
+  }
+}

@@ -3,14 +3,42 @@ name: CI
 on:
   push:
     branches: [main]
+    paths:
+      - 'examples/**'
+      - 'scripts/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/ci.yml'
   pull_request:
     branches: [main]
+    paths:
+      - 'examples/**'
+      - 'scripts/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/ci.yml'
 
 jobs:
   smoke:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/cache@v4
+        id: deriveddata
+        with:
+          path: examples/skill-test-app/.derivedData
+          key: deriveddata-${{ runner.os }}-${{ hashFiles('examples/skill-test-app/**/*.swift', 'examples/skill-test-app/Package.swift', 'examples/skill-test-app/project.yml', 'examples/skill-test-app/SkillTestApp.xcodeproj/**') }}
+          restore-keys: |
+            deriveddata-${{ runner.os }}-
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
 
       - name: Check prerequisites (headless)
         run: IOS_SIMULATOR_SKIP_BROWSER=1 ./scripts/check-prereqs.sh
